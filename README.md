@@ -18,10 +18,11 @@ Arguments:
   <PATH>  Root Path to clean from
 
 Options:
-  -d, --delete   Enable deletion
-  -q, --quiet    Quiet mode
-  -h, --help     Print help
-  -V, --version  Print version
+  -d, --delete         Enable deletion
+  -q, --quiet          Quiet mode
+  -i, --ignore-errors  Ignore errors such as permission denied
+  -h, --help           Print help
+  -V, --version        Print version
 ```
 
 # Warning ⚠️
