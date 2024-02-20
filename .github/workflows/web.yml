@@ -47,7 +47,7 @@ on:
     types:
       - completed
 
-  workflow_dispatch: '*'
+  workflow_dispatch:
 
 # Alright, let's do it!
 jobs:
