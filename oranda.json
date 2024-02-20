@@ -1,6 +1,6 @@
 {
     "build": {
-        "path_prefix": "rsc"
+        "path_prefix": "rsc/"
     },
     "styles": {
         "theme": "axodark",
