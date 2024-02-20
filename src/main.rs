@@ -23,6 +23,10 @@ pub struct Args {
     /// Quiet mode
     #[arg(short, long, action)]
     quiet: bool,
+
+    /// Ignore errors such as permission denied
+    #[arg(short, long, action)]
+    ignore_errors: bool,
 }
 
 fn main() -> Result<()> {
@@ -41,7 +45,7 @@ fn main() -> Result<()> {
         eprintln!("❌ path {} is not a directory!", args.path.display());
         std::process::exit(1);
     }
-    let cleaner = clean::Cleaner::new(args.path, args.delete, args.quiet);
+    let cleaner = clean::Cleaner::new(args.path, args.delete, args.quiet, args.ignore_errors);
     cleaner.clean()?;
 
     Ok(())

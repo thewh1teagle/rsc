@@ -11,20 +11,30 @@ pub struct Cleaner {
     path: PathBuf,
     delete: bool,
     quiet: bool,
+    ignore_errors: bool,
 }
 
 impl Cleaner {
-    pub fn new(path: PathBuf, delete: bool, quiet: bool) -> Self {
+    pub fn new(path: PathBuf, delete: bool, quiet: bool, ignore_errors: bool) -> Self {
         Cleaner {
             path,
             delete,
             quiet,
+            ignore_errors,
         }
     }
 
     fn clean_with_gitignore(&self, path: PathBuf, gitignore: Option<Gitignore>) -> Result<()> {
-        for entry in std::fs
-            ::read_dir(path)
+        let dir = std::fs::read_dir(path.clone());
+        if let Err(err) = dir {
+            if self.ignore_errors {
+                eprintln!("Error processing directory {}: {}", path.display(), err);
+                return Ok(());
+            } else {
+                panic!("{}", err);
+            }
+        }
+        for entry in dir
             .unwrap()
             .into_iter()
             .filter_map(|e| e.ok()) {
@@ -75,7 +85,18 @@ impl Cleaner {
                     entry.path().display(),
                     sub_gitignore.display()
                 );
-                self.clean_with_gitignore(entry.path().to_path_buf(), Some(new_gitignore))?;
+                let result = self.clean_with_gitignore(
+                    entry.path().to_path_buf(),
+                    Some(new_gitignore)
+                );
+                if let Some(err) = result.err() {
+                    if self.ignore_errors {
+                        eprintln!("Error processing file {}: {}", entry.path().display(), err);
+                        continue;
+                    } else {
+                        panic!("{}", err);
+                    }
+                }
             } else {
                 // Just get into the directory with current gitignore
 
@@ -86,7 +107,18 @@ impl Cleaner {
                         }
                     }
                     log::debug!("Visiting {} with parent gitignore.", entry.path().display());
-                    self.clean_with_gitignore(entry.path().to_path_buf(), gitignore.clone())?;
+                    let result = self.clean_with_gitignore(
+                        entry.path().to_path_buf(),
+                        gitignore.clone()
+                    );
+                    if let Some(err) = result.err() {
+                        if self.ignore_errors {
+                            eprintln!("Error processing file {}: {}", entry.path().display(), err);
+                            continue;
+                        } else {
+                            panic!("{}", err);
+                        }
+                    }
                 }
             }
         }
