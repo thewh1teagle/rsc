@@ -84,3 +84,31 @@ fn delete_ignored_files_and_folder() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn parent_gitignore_not_touching_sub_gitignore() -> Result<()> {
+    // Create a temporary directory
+    let temp_dir = tempfile::tempdir()?;
+    let temp_dir_path = temp_dir.path();
+    let inner_path = temp_dir_path.join("inner");
+
+    // Create a .gitignore file with 'ignored.txt'
+    let mut gitignore_file = File::create(temp_dir_path.join(".gitignore"))?;
+    gitignore_file.write_all(b"inner.txt\n")?;
+
+    // Create inner folder
+    std::fs::create_dir(inner_path.clone())?;
+    // empty gitignore
+    let mut gitignore_file = File::create(inner_path.clone().join(".gitignore"))?;
+    gitignore_file.write_all(b"nothing\n")?;
+    File::create(inner_path.clone().join("inner.txt"))?;
+
+    // Run the cleaner on parent folder
+    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true);
+    cleaner.clean()?;
+
+    // Assert that 'ignored.txt' is not there, 'not_ignored.txt' is there, and 'folder' is not there
+    assert!(inner_path.join("inner.txt").exists());
+
+    Ok(())
+}
