@@ -7,19 +7,7 @@ By default it's navigating between the folders and clean them based on their `.g
 
 # Usage
 
-```console
-rsc --help
-Usage: rsc [OPTIONS] <PATH>
-
-Arguments:
-  <PATH>  Root Path to clean from
-
-Options:
-  -d, --delete   Enable deletion
-  -q, --quiet    Quiet mode
-  -h, --help     Print help
-  -V, --version  Print version
-```
+Checkout [thewh1teagle.github.io/rsc](https://thewh1teagle.github.io/rsc/)
 
 # Warning ⚠️
 
