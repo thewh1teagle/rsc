@@ -28,7 +28,7 @@ impl Cleaner {
         let dir = std::fs::read_dir(path.clone());
         if let Err(err) = dir {
             if self.ignore_errors {
-                eprintln!("Error processing directory {}: {}", path.display(), err);
+                eprintln!("❌ Error processing directory {}: {}", path.display(), err);
                 return Ok(());
             } else {
                 panic!("{}", err);
@@ -73,7 +73,7 @@ impl Cleaner {
                 );
                 if error.is_some() {
                     eprintln!(
-                        "Failed to parse gitignore at {}. skipping dir...",
+                        "❌ Failed to parse gitignore at {}. skipping dir...",
                         sub_gitignore.clone().display()
                     );
                     // don't get into it
@@ -91,7 +91,7 @@ impl Cleaner {
                 );
                 if let Some(err) = result.err() {
                     if self.ignore_errors {
-                        eprintln!("Error processing file {}: {}", entry.path().display(), err);
+                        eprintln!("❌ Error processing file {}: {}", entry.path().display(), err);
                         continue;
                     } else {
                         panic!("{}", err);
@@ -113,7 +113,11 @@ impl Cleaner {
                     );
                     if let Some(err) = result.err() {
                         if self.ignore_errors {
-                            eprintln!("Error processing file {}: {}", entry.path().display(), err);
+                            eprintln!(
+                                "❌ Error processing file {}: {}",
+                                entry.path().display(),
+                                err
+                            );
                             continue;
                         } else {
                             panic!("{}", err);
@@ -135,7 +139,7 @@ impl Cleaner {
             let (new_gitignore, error) = ignore::gitignore::Gitignore::new(root_gitignore.clone());
             if error.is_some() {
                 eprintln!(
-                    "Failed to parse gitignore at {}. skipping dir...",
+                    "❌ Failed to parse gitignore at {}. skipping dir...",
                     root_gitignore.display()
                 );
                 // don't get into it
