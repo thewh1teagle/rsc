@@ -1,0 +1,18 @@
+{
+    "terminal.integrated.env.osx": {
+        "RUST_LOG": "debug"
+    },
+    "terminal.integrated.env.windows": {
+        "RUST_LOG": "debug"
+    },
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.organizeImports": "explicit",
+		"source.fixAll": "explicit"
+	},
+    "rust-analyzer.checkOnSave": true,
+    "cargo.automaticCheck": false,
+    "[rust]": {
+		"editor.defaultFormatter": "jinxdash.prettier-rust"
+	},
+}
