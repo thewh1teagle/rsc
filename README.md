@@ -1,4 +1,4 @@
-# Rust Smart Cleaner
+# rsc
 
 Rusty smart cleaner is a cross-platform Rust tool for cleaning operating system files.
 
