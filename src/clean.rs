@@ -12,15 +12,23 @@ pub struct Cleaner {
     delete: bool,
     quiet: bool,
     ignore_errors: bool,
+    skip_nested: bool,
 }
 
 impl Cleaner {
-    pub fn new(path: PathBuf, delete: bool, quiet: bool, ignore_errors: bool) -> Self {
+    pub fn new(
+        path: PathBuf,
+        delete: bool,
+        quiet: bool,
+        ignore_errors: bool,
+        skip_nested: bool
+    ) -> Self {
         Cleaner {
             path,
             delete,
             quiet,
             ignore_errors,
+            skip_nested,
         }
     }
 
@@ -80,6 +88,14 @@ impl Cleaner {
                     continue;
                 }
                 // Get into directory with new gitignore
+                if self.skip_nested {
+                    log::debug!(
+                        "Skipping {} with gitignore {}",
+                        entry.path().display(),
+                        sub_gitignore.display()
+                    );
+                    continue;
+                }
                 log::debug!(
                     "Visiting {} with new gitignore {}",
                     entry.path().display(),
@@ -106,6 +122,17 @@ impl Cleaner {
                             continue;
                         }
                     }
+
+                    // Skip if configured
+                    if self.skip_nested {
+                        log::debug!(
+                            "Skipping {} with gitignore {}",
+                            entry.path().display(),
+                            sub_gitignore.display()
+                        );
+                        continue;
+                    }
+                    // Visit nested with new gitignore
                     log::debug!("Visiting {} with parent gitignore.", entry.path().display());
                     let result = self.clean_with_gitignore(
                         entry.path().to_path_buf(),

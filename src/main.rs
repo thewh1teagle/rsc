@@ -27,6 +27,10 @@ pub struct Args {
     /// Ignore errors such as permission denied
     #[arg(short, long, action)]
     ignore_errors: bool,
+
+    /// Skip nested gitignores scan
+    #[arg(short, long, action)]
+    skip_nested: bool,
 }
 
 fn main() -> Result<()> {
@@ -45,7 +49,13 @@ fn main() -> Result<()> {
         eprintln!("❌ path {} is not a directory!", args.path.display());
         std::process::exit(1);
     }
-    let cleaner = clean::Cleaner::new(args.path, args.delete, args.quiet, args.ignore_errors);
+    let cleaner = clean::Cleaner::new(
+        args.path,
+        args.delete,
+        args.quiet,
+        args.ignore_errors,
+        args.skip_nested
+    );
     cleaner.clean()?;
 
     Ok(())

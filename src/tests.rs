@@ -18,7 +18,7 @@ fn delete_ignored_files() -> Result<()> {
     File::create(temp_dir_path.join("not_ignored.txt"))?;
 
     // Run the cleaner on that folder
-    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false);
+    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false, false);
     cleaner.clean()?;
 
     // Assert that 'ignored.txt' is not there but 'not_ignored.txt' is there
@@ -47,7 +47,7 @@ fn delete_inner_ignored_file() -> Result<()> {
     File::create(inner_folder_path.join("not_inner_ignored.txt"))?;
 
     // Run the cleaner on that folder
-    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false);
+    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false, false);
     cleaner.clean()?;
 
     // Assert that 'inner_ignored.txt' is not there but 'not_inner_ignored.txt' is there
@@ -73,7 +73,7 @@ fn delete_ignored_files_and_folder() -> Result<()> {
     std::fs::create_dir(temp_dir_path.join("folder"))?;
 
     // Run the cleaner on that folder
-    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false);
+    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false, false);
     cleaner.clean()?;
 
     // Assert that 'ignored.txt' is not there, 'not_ignored.txt' is there, and 'folder' is not there
@@ -104,7 +104,7 @@ fn parent_gitignore_not_touching_sub_gitignore() -> Result<()> {
     File::create(inner_path.clone().join("inner.txt"))?;
 
     // Run the cleaner on parent folder
-    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false);
+    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false, false);
     cleaner.clean()?;
 
     // Assert that 'inner.txt' is there, and parent gitignore doesn't affect it since we have inner gitignore
@@ -126,7 +126,7 @@ fn no_files_deleted_when_no_gitignore() -> Result<()> {
     }
 
     // Run the cleaner on the parent folder without using gitignore options
-    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), false, false, false);
+    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), false, false, false, false);
     cleaner.clean()?;
 
     // Check if all the created files still exist
