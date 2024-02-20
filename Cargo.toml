@@ -4,7 +4,7 @@ description = "Rusty smart cleaner is a cross-platform Rust tool for cleaning op
 repository = "https://github.com/thewh1teagle/rsc"
 homepage = "https://thewh1teagle.github.io/rsc/"
 authors = ["thewh1teagle"]
-version = "0.2.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 
