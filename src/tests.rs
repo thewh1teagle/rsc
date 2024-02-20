@@ -91,7 +91,7 @@ fn parent_gitignore_not_touching_sub_gitignore() -> Result<()> {
     let temp_dir_path = temp_dir.path();
     let inner_path = temp_dir_path.join("inner");
 
-    // Create a .gitignore file with 'ignored.txt'
+    // Create a .gitignore file with content 'ignored.txt'
     let mut gitignore_file = File::create(temp_dir_path.join(".gitignore"))?;
     gitignore_file.write_all(b"inner.txt\n")?;
 
@@ -100,14 +100,39 @@ fn parent_gitignore_not_touching_sub_gitignore() -> Result<()> {
     // empty gitignore
     let mut gitignore_file = File::create(inner_path.clone().join(".gitignore"))?;
     gitignore_file.write_all(b"nothing\n")?;
+    // Create inner.txt file in inner folder
     File::create(inner_path.clone().join("inner.txt"))?;
 
     // Run the cleaner on parent folder
     let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), true, true, false);
     cleaner.clean()?;
 
-    // Assert that 'ignored.txt' is not there, 'not_ignored.txt' is there, and 'folder' is not there
+    // Assert that 'inner.txt' is there, and parent gitignore doesn't affect it since we have inner gitignore
     assert!(inner_path.join("inner.txt").exists());
+
+    Ok(())
+}
+
+#[test]
+fn no_files_deleted_when_no_gitignore() -> Result<()> {
+    // Create a temporary directory
+    let temp_dir = tempfile::tempdir()?;
+    let temp_dir_path = temp_dir.path();
+
+    // Create some test files
+    let files_to_create = ["file1.txt", "file2.txt", "file3.txt"];
+    for file in files_to_create.iter() {
+        File::create(temp_dir_path.join(file))?;
+    }
+
+    // Run the cleaner on the parent folder without using gitignore options
+    let cleaner = clean::Cleaner::new(temp_dir_path.to_path_buf(), false, false, false);
+    cleaner.clean()?;
+
+    // Check if all the created files still exist
+    for file in files_to_create.iter() {
+        assert!(temp_dir_path.join(file).exists());
+    }
 
     Ok(())
 }
