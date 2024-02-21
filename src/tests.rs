@@ -18,13 +18,14 @@ fn delete_ignored_files() -> Result<()> {
     File::create(temp_dir_path.join("not_ignored.txt"))?;
 
     // Run the cleaner on that folder
-    let cleaner = clean::Cleaner::try_create(
+    let mut cleaner = clean::Cleaner::try_create(
         temp_dir_path.to_path_buf(),
         true,
         true,
         false,
         false,
-        None
+        None,
+        false
     )?;
     cleaner.clean()?;
 
@@ -54,13 +55,14 @@ fn delete_inner_ignored_file() -> Result<()> {
     File::create(inner_folder_path.join("not_inner_ignored.txt"))?;
 
     // Run the cleaner on that folder
-    let cleaner = clean::Cleaner::try_create(
+    let mut cleaner = clean::Cleaner::try_create(
         temp_dir_path.to_path_buf(),
         true,
         true,
         false,
         false,
-        None
+        None,
+        false
     )?;
     cleaner.clean()?;
 
@@ -87,13 +89,14 @@ fn delete_ignored_files_and_folder() -> Result<()> {
     std::fs::create_dir(temp_dir_path.join("folder"))?;
 
     // Run the cleaner on that folder
-    let cleaner = clean::Cleaner::try_create(
+    let mut cleaner = clean::Cleaner::try_create(
         temp_dir_path.to_path_buf(),
         true,
         true,
         false,
         false,
-        None
+        None,
+        false
     )?;
     cleaner.clean()?;
 
@@ -125,13 +128,14 @@ fn parent_gitignore_not_touching_sub_gitignore() -> Result<()> {
     File::create(inner_path.clone().join("inner.txt"))?;
 
     // Run the cleaner on parent folder
-    let cleaner = clean::Cleaner::try_create(
+    let mut cleaner = clean::Cleaner::try_create(
         temp_dir_path.to_path_buf(),
         true,
         true,
         false,
         false,
-        None
+        None,
+        false
     )?;
     cleaner.clean()?;
 
@@ -154,13 +158,14 @@ fn no_files_deleted_when_no_gitignore() -> Result<()> {
     }
 
     // Run the cleaner on the parent folder without using gitignore options
-    let cleaner = clean::Cleaner::try_create(
+    let mut cleaner = clean::Cleaner::try_create(
         temp_dir_path.to_path_buf(),
         false,
         false,
         false,
         false,
-        None
+        None,
+        false
     )?;
     cleaner.clean()?;
 

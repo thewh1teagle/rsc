@@ -1,7 +1,9 @@
-use std::{ path::PathBuf, time::Duration };
+use std::{ path::{ Path, PathBuf }, time::Duration };
 use anyhow::{ Context, Result };
 use ignore::gitignore::Gitignore;
 use regex::Regex;
+use fs_extra;
+use bytesize::{ self, ByteSize };
 
 // parse patterns from gitignore
 // iterate files & folders
@@ -15,6 +17,27 @@ pub struct Cleaner {
     ignore_errors: bool,
     skip_nested: bool,
     skip_patterns: Vec<Regex>,
+    calculate_size: bool,
+    total_size: u64,
+}
+
+trait CalculateSize {
+    fn size(&self) -> Result<u64>;
+}
+
+impl CalculateSize for Path {
+    fn size(&self) -> Result<u64> {
+        if self.is_dir() {
+            let size = fs_extra::dir::get_size(self)?;
+            return Ok(size);
+        }
+        Ok(self.metadata()?.len())
+    }
+}
+
+fn human_size(size: u64) -> Result<String> {
+    let human_size = ByteSize(size).to_string();
+    Ok(human_size)
 }
 
 impl Cleaner {
@@ -24,7 +47,8 @@ impl Cleaner {
         quiet: bool,
         ignore_errors: bool,
         skip_nested: bool,
-        skip_patterns: Option<Vec<String>>
+        skip_patterns: Option<Vec<String>>,
+        calculate_size: bool
     ) -> Result<Self> {
         let skip_patterns: Vec<Regex> = skip_patterns
             .unwrap_or_default()
@@ -39,11 +63,13 @@ impl Cleaner {
             ignore_errors,
             skip_nested,
             skip_patterns,
+            calculate_size,
+            total_size: 0,
         };
         Ok(cleaner)
     }
 
-    fn clean_with_gitignore(&self, path: PathBuf, gitignore: Option<Gitignore>) -> Result<()> {
+    fn clean_with_gitignore(&mut self, path: PathBuf, gitignore: Option<Gitignore>) -> Result<()> {
         let dir = std::fs::read_dir(path.clone());
         if let Err(err) = dir {
             if self.ignore_errors {
@@ -76,10 +102,18 @@ impl Cleaner {
 
                 if gitignore.matched(entry.path(), entry.path().is_dir()).is_ignore() {
                     if !self.quiet {
-                        if entry.path().is_dir() {
-                            println!("🗂️  {}", entry.path().display());
+                        let size_str = if self.calculate_size {
+                            let size = entry.path().size()?;
+                            self.total_size += size;
+                            let human_size = human_size(size)?;
+                            format!(" - {}", human_size)
                         } else {
-                            println!("📄 {}", entry.path().display());
+                            "".to_string()
+                        };
+                        if entry.path().is_dir() {
+                            println!("🗂️  {}{}", entry.path().display(), size_str);
+                        } else {
+                            println!("📄 {}{}", entry.path().display(), size_str);
                         }
                     }
 
@@ -171,7 +205,7 @@ impl Cleaner {
         Ok(())
     }
 
-    pub fn clean(&self) -> Result<()> {
+    pub fn clean(&mut self) -> Result<()> {
         if !self.delete {
             println!("🚫 Running in dry-run mode. Pass --delete to actually delete.");
             std::thread::sleep(Duration::from_millis(500));
@@ -188,10 +222,17 @@ impl Cleaner {
                 return Ok(());
             }
             self.clean_with_gitignore(self.path.clone(), Some(new_gitignore))?;
+            if self.calculate_size {
+                let human_size = human_size(self.total_size)?;
+                println!("💾 Total: {}", human_size);
+            }
             return Ok(());
         }
         self.clean_with_gitignore(self.path.clone(), None)?;
-
+        if self.calculate_size {
+            let human_size = human_size(self.total_size)?;
+            println!("💾 Total: {}", human_size);
+        }
         Ok(())
     }
 }

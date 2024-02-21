@@ -35,6 +35,10 @@ pub struct Args {
     /// Regex patterns to skip deletion
     #[arg(long, action)]
     skip_patterns: Option<Vec<String>>,
+
+    /// Calculate delete size and display per files and total
+    #[arg(long, action)]
+    calculate_size: bool,
 }
 
 fn main() -> Result<()> {
@@ -53,13 +57,14 @@ fn main() -> Result<()> {
         eprintln!("❌ path {} is not a directory!", args.path.display());
         std::process::exit(1);
     }
-    let cleaner = clean::Cleaner::try_create(
+    let mut cleaner = clean::Cleaner::try_create(
         args.path,
         args.delete,
         args.quiet,
         args.ignore_errors,
         args.skip_nested,
-        args.skip_patterns
+        args.skip_patterns,
+        args.calculate_size
     )?;
     cleaner.clean()?;
 
