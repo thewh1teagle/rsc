@@ -1,7 +1,6 @@
 # rsc
 
-Rusty smart cleaner is a cross-platform Rust tool for cleaning operating system files.
-
+Rusty smart cleaner is a cross-platform Rust tool for cleaning files.
 It provides an easy way to remove unwanted files from your projects, using strategies such as gitignore.
 By default it's navigating between the folders and clean them based on their `.gitignore` files.
 
