@@ -122,16 +122,6 @@ impl Cleaner {
                             continue;
                         }
                     }
-
-                    // Skip if configured
-                    if self.skip_nested {
-                        log::debug!(
-                            "Skipping {} with gitignore {}",
-                            entry.path().display(),
-                            sub_gitignore.display()
-                        );
-                        continue;
-                    }
                     // Visit nested with new gitignore
                     log::debug!("Visiting {} with parent gitignore.", entry.path().display());
                     let result = self.clean_with_gitignore(
