@@ -318,8 +318,8 @@ dependencies = [
  "env_logger",
  "ignore",
  "log",
+ "regex",
  "tempfile",
- "walkdir",
 ]
 
 [[package]]

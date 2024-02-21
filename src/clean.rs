@@ -1,6 +1,7 @@
 use std::{ path::PathBuf, time::Duration };
-use anyhow::Result;
+use anyhow::{ Context, Result };
 use ignore::gitignore::Gitignore;
+use regex::Regex;
 
 // parse patterns from gitignore
 // iterate files & folders
@@ -13,23 +14,33 @@ pub struct Cleaner {
     quiet: bool,
     ignore_errors: bool,
     skip_nested: bool,
+    skip_patterns: Vec<Regex>,
 }
 
 impl Cleaner {
-    pub fn new(
+    pub fn try_create(
         path: PathBuf,
         delete: bool,
         quiet: bool,
         ignore_errors: bool,
-        skip_nested: bool
-    ) -> Self {
-        Cleaner {
+        skip_nested: bool,
+        skip_patterns: Option<Vec<String>>
+    ) -> Result<Self> {
+        let skip_patterns: Vec<Regex> = skip_patterns
+            .unwrap_or_default()
+            .iter()
+            .map(|e| Regex::new(e).unwrap())
+            .collect();
+        // println!("{:?}", extra_ignore_patterns);
+        let cleaner = Cleaner {
             path,
             delete,
             quiet,
             ignore_errors,
             skip_nested,
-        }
+            skip_patterns,
+        };
+        Ok(cleaner)
     }
 
     fn clean_with_gitignore(&self, path: PathBuf, gitignore: Option<Gitignore>) -> Result<()> {
@@ -42,13 +53,27 @@ impl Cleaner {
                 panic!("{}", err);
             }
         }
-        for entry in dir
+        'outer: for entry in dir
             .unwrap()
             .into_iter()
             .filter_map(|e| e.ok()) {
             // if we have gitignore, try to clean
             log::trace!("entry {}", entry.path().display());
             if let Some(ref gitignore) = gitignore {
+                let full = entry.path().canonicalize().context("cant get full path")?;
+                let full = full.as_path().to_str().context("cant convet path to str")?;
+
+                for pattern in self.skip_patterns.clone() {
+                    if pattern.is_match(full) {
+                        log::debug!(
+                            "Skipping path {} match pattern {}",
+                            entry.path().display(),
+                            pattern
+                        );
+                        continue 'outer;
+                    }
+                }
+
                 if gitignore.matched(entry.path(), entry.path().is_dir()).is_ignore() {
                     if !self.quiet {
                         if entry.path().is_dir() {
@@ -96,7 +121,7 @@ impl Cleaner {
                     );
                     continue;
                 }
-                log::debug!(
+                log::trace!(
                     "Visiting {} with new gitignore {}",
                     entry.path().display(),
                     sub_gitignore.display()
@@ -123,7 +148,7 @@ impl Cleaner {
                         }
                     }
                     // Visit nested with new gitignore
-                    log::debug!("Visiting {} with parent gitignore.", entry.path().display());
+                    log::trace!("Visiting {} with parent gitignore.", entry.path().display());
                     let result = self.clean_with_gitignore(
                         entry.path().to_path_buf(),
                         gitignore.clone()

@@ -1,9 +1,9 @@
 {
     "terminal.integrated.env.osx": {
-        "RUST_LOG": "debug"
+        "RUST_LOG": "info"
     },
     "terminal.integrated.env.windows": {
-        "RUST_LOG": "debug"
+        "RUST_LOG": "info"
     },
 	"editor.formatOnSave": true,
 	"editor.codeActionsOnSave": {

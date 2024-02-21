@@ -29,8 +29,12 @@ pub struct Args {
     ignore_errors: bool,
 
     /// Skip nested gitignores scan
-    #[arg(short, long, action)]
+    #[arg(long, action)]
     skip_nested: bool,
+
+    /// Regex patterns to skip deletion
+    #[arg(long, action)]
+    skip_patterns: Option<Vec<String>>,
 }
 
 fn main() -> Result<()> {
@@ -49,13 +53,14 @@ fn main() -> Result<()> {
         eprintln!("❌ path {} is not a directory!", args.path.display());
         std::process::exit(1);
     }
-    let cleaner = clean::Cleaner::new(
+    let cleaner = clean::Cleaner::try_create(
         args.path,
         args.delete,
         args.quiet,
         args.ignore_errors,
-        args.skip_nested
-    );
+        args.skip_nested,
+        args.skip_patterns
+    )?;
     cleaner.clean()?;
 
     Ok(())
