@@ -176,3 +176,89 @@ fn no_files_deleted_when_no_gitignore() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn ensure_symlink_files_never_deleted() -> Result<()> {
+    // Create a temporary directory
+    let temp_dir = tempfile::tempdir()?;
+    let temp_dir_path = temp_dir.path();
+
+    // Create a symbolic link to a file
+    let symlink_target_path = temp_dir_path.join("target_file.txt");
+    File::create(&symlink_target_path)?;
+
+    // Create gitignore
+    let mut gitignore_file = File::create(temp_dir_path.join(".gitignore"))?;
+    gitignore_file.write_all(b"symlink.txt\n")?;
+
+    let symlink_path = temp_dir_path.join("symlink.txt");
+    #[cfg(not(windows))]
+    {
+        std::os::unix::fs::symlink(&symlink_target_path, &symlink_path)?;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::symlink_file;
+        symlink_file(&symlink_target_path, &symlink_path)?;
+    }
+
+    // Run the cleaner on that folder
+    let mut cleaner = clean::Cleaner::try_create(
+        temp_dir_path.to_path_buf(),
+        true,
+        true,
+        false,
+        false,
+        None,
+        false
+    )?;
+    cleaner.clean()?;
+
+    // Assert that the symbolic link still exists
+    assert!(symlink_path.exists());
+
+    Ok(())
+}
+
+#[test]
+fn ensure_symlink_folders_never_deleted() -> Result<()> {
+    // Create a temporary directory
+    let temp_dir = tempfile::tempdir()?;
+    let temp_dir_path = temp_dir.path();
+
+    // Create a new temporary directory to be symlinked
+    let target_folder = tempfile::tempdir()?;
+    let target_folder_path = target_folder.path();
+
+    // Create gitignore
+    let mut gitignore_file = File::create(temp_dir_path.join(".gitignore"))?;
+    gitignore_file.write_all(b"symlinked_folder/\n")?;
+
+    let symlink_path = temp_dir_path.join("symlinked_folder");
+    #[cfg(not(windows))]
+    {
+        std::os::unix::fs::symlink(&target_folder_path, &symlink_path)?;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::symlink_dir;
+        symlink_dir(&target_folder_path, &symlink_path)?;
+    }
+
+    // Run the cleaner on that folder
+    let mut cleaner = clean::Cleaner::try_create(
+        temp_dir_path.to_path_buf(),
+        true,
+        true,
+        false,
+        false,
+        None,
+        false
+    )?;
+    cleaner.clean()?;
+
+    // Assert that the symbolic link still exists
+    assert!(symlink_path.exists());
+
+    Ok(())
+}
